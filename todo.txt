@@ -1,0 +1,15 @@
+12/26/2016 Heroku
+
+To-Do:
+1. Try to fix draw (cpu) script.
+3. Figure out how to add RockMongo.
+5. Keep improving edit scripts.
+6. Add photo to About page.
+7. Set new page target for About links.
+8. Add wait circle when edits run.
+9. Add photo page using thumbnails and overlays.
+10. Optional: use user fields admin, logged in dates.
+11. Figure final design, which css, jade, and jquery to
+    use.
+    11.1 Consider jquery plugins.
+12. Remove edits if image is deleted.

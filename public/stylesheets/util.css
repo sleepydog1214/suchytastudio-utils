@@ -1,0 +1,168 @@
+/*********************************************************************
+The MIT License (MIT)
+
+Copyright (c) 2016 Thomas Suchyta
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ ********************************************************************/
+
+/*********************************************************************
+ * stylesheets/util.css
+ ********************************************************************/
+
+ #dataLinks li {
+  display: inline-block;
+  margin: 0 .75em 1em 0;
+ }
+
+ .listWrapper {
+  border: 2px solid #000;
+  margin: 30px 5%;
+  padding: 0 15px;
+ }
+
+ .collectionList {
+ 	margin: 0;
+ }
+
+.collectionList table {
+	border-collapse:separate;
+	border-spacing:1px;
+	background:#CCC;
+}
+
+.collectionList table th {
+	background:#EEE;
+	font-weight:600;
+	padding:10px 20px;
+	text-align:center;
+}
+.collectionList table tbody {
+	padding:0; margin:0;
+	border-collapse:collapse;
+	border-spacing:0px;
+}
+
+.collectionList table td {
+	background:#FFF;
+	padding:5px 10px;
+	text-align:center;
+}
+
+.listInfo {
+	margin 0;
+}
+
+fieldset {
+	border:0;
+	padding:0;
+margin:0;
+}
+
+#updateImage label,
+#updateUser label,
+#addImage label,
+#addUser label {
+  display: block;
+  margin: 8px 0;
+  font-size: 1.0em;
+}
+
+#updateImage input[type=text],
+#addImage input[type=text],
+#updateUser input[type=text],
+#updateUser input[type=password],
+#addUser input[type=password],
+#addUser input[type=text] {
+  display: block;
+  padding: 8px;
+  border: solid 3px #a6c5de;
+  transition: border 0.3s;
+}
+
+#updateImage input[type=text]:focus,
+#addImage input[type=text]:focus,
+#updateUser input[type=text]:focus,
+#updateUser input[type=password]:focus,
+#addUser input[type=password]:focus,
+#addUser input[type=text]:focus {
+  border: solid 3px #2d587a;
+}
+
+#updateImage button,
+#updateUser button,
+#addUser button,
+#addImage input[type=submit] {
+  display: block;
+  background-color: #2d587a;
+  margin: 15px 0;
+  color: #fff;
+  font-size: 1.1em;
+  box-shadow: 1px 1px 0 #000;
+  border: 1px solid #000;
+  border-radius: 5%;
+}
+
+#addImage input[type=file] {
+  display: none;
+}
+
+#chooseFile label {
+  display: block;
+  cursor: pointer;
+  background-color: #2d587a;
+  margin: 15px 0;
+  padding: 3px;
+  max-width: 100px;
+  color: #fff;
+  font-size: 1.1em;
+  box-shadow: 1px 1px 0 #000;
+  border: 1px solid #000;
+  border-radius: 5%;
+}
+
+#addImage img {
+  display: block;
+  box-shadow: 2px 2px 0 #000;
+  border: 2px solid #000;
+  margin: 25px;
+}
+
+.listInfo ul {
+    margin: 0 0 95px 0;
+}
+
+.listInfo li {
+  float: left;
+  margin: 0.5em 0.5em;
+  border-right: 2px solid #000;
+  padding: 0 10px;
+  color: #107b2b;
+}
+
+.listInfo span {
+  display: inline;
+  padding: 0 5px;
+  color: #000;
+}
+
+.listWrapper h2 {
+  clear: both;
+  font-size: 1.2em;
+}

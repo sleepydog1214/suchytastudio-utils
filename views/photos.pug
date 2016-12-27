@@ -1,0 +1,64 @@
+//- ******************************************************************
+//- The MIT License (MIT)
+//-
+//- Copyright (c) 2016 Thomas Suchyta
+//-
+//- Permission is hereby granted, free of charge, to any person obtaining a copy
+//- of this software and associated documentation files (the "Software"), to deal
+//- in the Software without restriction, including without limitation the rights
+//- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//- copies of the Software, and to permit persons to whom the Software is
+//- furnished to do so, subject to the following conditions:
+//-
+//- The above copyright notice and this permission notice shall be included in all
+//- copies or substantial portions of the Software.
+//-
+//- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//- SOFTWARE.
+//- ******************************************************************
+
+//- ******************************************************************
+//- views/photos.jade
+//- ******************************************************************
+
+extends layout
+
+block stylesheet
+  link(rel='stylesheet', href='/stylesheets/ribbon.css')
+  link(rel='stylesheet', href='/stylesheets/photos.css')
+block content
+  h3= title
+
+  #photoRibbon
+    table
+      tbody
+
+  #photoEdit
+    form(action="" method="")
+      p image caption
+      a(href="", class="orig")
+        img(src="", alt="display image here", class="orig")
+      #editRadio
+        input(id="basic", type="radio", name="edit", value="basic")
+        label(for="basic") Basic
+        input(id="paint", type="radio", name="edit", value="paint")
+        label(for="paint") Paint
+        input(id="paint_v2", type="radio", name="edit", value="paint_v2")
+        label(for="paint_v2") Paint (cpu/memory intensive)
+        input(id="draw", type="radio", name="edit", value="draw")
+        label(for="draw") Draw
+        input(id="draw_v2", type="radio", name="edit", value="draw_v2")
+        label(for="draw_v2") Draw (cpu/memory intensive)
+        input(id="sepia", type="radio", name="edit", value="sepia")
+        label(for="sepia") Sepia
+        input(type="submit" value="Edit")
+
+
+  script(src="https://code.jquery.com/jquery-1.11.0.min.js")
+  script(src='/javascripts/ribbon.js')
+  script(src='/javascripts/photos.js')

@@ -1,0 +1,177 @@
+//- ******************************************************************
+//- The MIT License (MIT)
+//-
+//- Copyright (c) 2016 Thomas Suchyta
+//-
+//- Permission is hereby granted, free of charge, to any person obtaining a copy
+//- of this software and associated documentation files (the "Software"), to deal
+//- in the Software without restriction, including without limitation the rights
+//- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//- copies of the Software, and to permit persons to whom the Software is
+//- furnished to do so, subject to the following conditions:
+//-
+//- The above copyright notice and this permission notice shall be included in all
+//- copies or substantial portions of the Software.
+//-
+//- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//- SOFTWARE.
+//- ******************************************************************
+
+//- ******************************************************************
+//- views/util.jade
+//- ******************************************************************
+
+extends layout
+
+block stylesheet
+  link(rel='stylesheet', href='/stylesheets/util.css')
+block content
+  h3= title
+  #dataLinks
+    ul
+      li
+        a(href="#" id="imageData") Image data
+      li
+        a(href="#" id="userData") User data
+
+  // imageList collection Wrapper
+  .listWrapper#imageWrapper
+    // IMAGE LIST
+    h2 Image List
+    .collectionList#imageList
+      table
+        thead
+          th Image
+          th Path
+          th Size
+          th Mimetype
+          th Timestamp
+          th Description
+          th Delete?
+        tbody
+    // /IMAGE LIST
+
+    // UPDATE IMAGE
+    h2 Update Image
+    .updateList#updateImage
+      fieldset
+        input#inputImageId(type='hidden')
+        label File Name:
+        input#inputImageName(type='text')
+        label File Path:
+        input#inputImagePath(type='text', readonly)
+        label File Size:
+        input#inputImageSize(type='text', readonly)
+        label mimetype:
+        input#inputImageMimetype(type='text', readonly)
+        label timestamp:
+        input#inputImageTimestamp(type='text', readonly)
+        label Description:
+        input#inputImageDesc(type='text')
+        button#btnUpdateImage Update Image
+    // /UPDATE IMAGE
+
+    // ADD IMAGE
+    h2 Add Image
+    .addList#addImage
+      form(role="form", action="/images/upload", method="post", enctype="multipart/form-data")
+        div(class="form-group")
+          label Description:
+          input(type="text", name="desc")
+          img(id="uploadPreview", style="width: 100px;", alt="image preview")
+          input(type="file", name="sdd-photo", id="sdd-photo", onchange="previewImage();")
+          #chooseFile
+            label(for="sdd-photo") Choose File
+          input(type="submit" value="Upload")
+    // /ADD IMAGE
+
+    // /imageList collection Wrapper
+
+  // userList collection Wrapper
+  .listWrapper#userWrapper
+    // USER INFO
+    .listInfo#userInfo
+      h2 User Info
+      ul
+        li Id:
+          span(id='userInfoId')
+        li Name:
+          span(id='userInfoName')
+        li Email:
+          span(id='userInfoEmail')
+        li Password:
+          span(id='userInfoPwd')
+        li Admin:
+          span(id='userInfoAdmin')
+        li Logged In:
+          span(id='userInfoLoggedIn')
+        li Log In Date:
+          span(id='userInfoLogInDate')
+    // /USER INFO
+
+    // USER LIST
+    h2 User List
+    .collectionList#userList
+      table
+        thead
+          th User
+          th Email
+          th Password
+          th Admin
+          th Logged In
+          th Log In Date
+          th Update?
+          th Delete?
+        tbody
+    // /USER LIST
+
+    // UPDATE USER
+    h2 Update User
+    .updateList#updateUser
+      fieldset
+        input#inputUserId(type='hidden')
+        label Username:
+        input#inputUserName(type='text')
+        label Email:
+        input#inputUserEmail(type='text')
+        label Password:
+        input#inputUserPwd(type='password')
+        label Admin:
+        input#inputUserAdmin(type='text')
+        label Logged In:
+        input#inputUserLoggedIn(type='text')
+        label Log In Date:
+        input#inputUserLogInDate(type='text')
+        button#btnUpdateUser Update User
+    // /UPDATE USER
+
+    // ADD USER
+    h2 Add User
+    .addList#addUser
+      fieldset
+        label Username:
+        input#inputUserName(type='text')
+        label Email:
+        input#inputUserEmail(type='text')
+        label Password:
+        input#inputUserPwd(type='password')
+        label Admin:
+        input#inputUserAdmin(type='text')
+        label Logged In:
+        input#inputUserLoggedIn(type='text')
+        label Log In Date:
+        input#inputUserLogInDate(type='text')
+        button#btnAddUser Add User
+    // /ADD USER
+
+  // /"userList collection Wrapper
+
+  script(src="https://code.jquery.com/jquery-1.11.0.min.js")
+  script(src='/javascripts/util.js')
+  script(src='/javascripts/imageutil.js')
+  script(src='/javascripts/userutil.js')

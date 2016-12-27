@@ -1,0 +1,36 @@
+{
+  "name": "suchytastudio-utils",
+  "version": "1.0.0",
+  "description": "Suchyta Studio Art ",
+  "keywords": [
+    "digital art"
+  ],
+  "author": {
+    "name": "Thomas Suchyta",
+    "email": "suchytastudio@gmail.com"
+  },
+  "engines": {
+    "node": "~6.9.1"
+  },
+  "dependencies": {
+    "body-parser": "~1.15.2",
+    "connect-mongo": "~1.3.2",
+    "express": "~4.14.0",
+    "express-session": "~1.14.2",
+    "gm": "~1.23.0",
+    "moment": "~2.17.1",
+    "mongodb": "~2.2.16",
+    "monk": "~3.1.3",
+    "morgan": "~1.7.0",
+    "multer": "~1.2.1",
+    "passport": "~0.3.2",
+    "passport-local": "~1.0.0",
+    "password-hash-and-salt": "~0.1.4",
+    "path": "~0.12.7",
+    "pug": "^2.0.0-beta6",
+    "serve-favicon": "~2.3.2"
+  },
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js" }
+}

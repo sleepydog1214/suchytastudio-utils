@@ -1,0 +1,5 @@
+log
+npm-debug.log
+edit-image.log
+/node_modules
+.env
