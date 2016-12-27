@@ -67,8 +67,8 @@ var getMongodbConnectionString = function () {
   var mongodb_connection_string = 'mongodb://127.0.0.1:27017/' + db_name;
 
   //take advantage of heroku env vars when available:
-  if(process.env.MONGOLAB_URI){
-    mongodb_connection_string = process.env.MONGOLAB_URI;
+  if(process.env.MONGODB_URI){
+    mongodb_connection_string = process.env.MONGODB_URI;
   }
   return mongodb_connection_string;
 }

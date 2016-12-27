@@ -1,6 +1,7 @@
 12/26/2016 Heroku
 
 To-Do:
+0. Connect to heroku.
 1. Try to fix draw (cpu) script.
 3. Figure out how to add RockMongo.
 5. Keep improving edit scripts.
