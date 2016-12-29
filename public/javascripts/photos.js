@@ -114,7 +114,10 @@ function editImage(event) {
 
     $('#editStatus p').text(response.image + ' processing...');
     pollEditImage({ 'image': response.image,
-                    'path': response.path });
+                    'path': response.path,
+                    'orig': response.orig,
+                    'checked': response.checked,
+                    'timestamp': response.timestamp });
   });
 };
 

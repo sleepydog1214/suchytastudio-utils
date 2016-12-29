@@ -35,6 +35,7 @@ SOFTWARE.
  * uploadToStorj() - Copy file to Storj bucket.
  * deleteFromStorj() - Delete file from Storj bucket.
  * deleteLocalFiles() - Delete local files after moving to Storj dir.
+ * clone() - Create a copy of an object.
  * makeThumbOvly() - Create thumbnail and overlay images.
  * GET imagelist - Read the collection.
  * GET editslist - Read the collection.
@@ -126,7 +127,7 @@ var authenticateStorj = function() {
 /*********************************************************************
  * uploadToStorj() - Copy file to Storj bucket
  ********************************************************************/
-var uploadToStorj = function(filepath) {
+var uploadToStorj = function(filepath, collection, newImage) {
   var client = authenticateStorj();
 
   // Determine the storj bucket to use base on the filepath name
@@ -157,7 +158,6 @@ var uploadToStorj = function(filepath) {
   else if (filepath.search(/edits\/thumbs/) >= 0) {
    bucket = process.env.STORJ_EDITS_THUMBS;
   }
-  console.log('bucket: ', bucket);
 
   // temp file to store encrypted version
   var tmpPath = filepath + '.crypt';
@@ -199,6 +199,11 @@ var uploadToStorj = function(filepath) {
             [file.filename, file.mimetype, file.size, file.id]
           );
 
+          // Save info for later access
+          var fileinfo = { bucket: bucket, id: file.id };
+          newImage.path = fileinfo;
+          collection.insert(newImage);
+
           // Delete the tmp file
           fs.unlink(tmpPath, function(err) {
             if (err) {
@@ -228,9 +233,25 @@ var deleteLocalFiles = function(fpath) {
 };
 
 /*********************************************************************
+ * clone() - create a copy of an object.
+ ********************************************************************/
+var clone = function clone(obj) {
+  if (null == obj || "object" != typeof obj) {
+    return obj;
+  }
+  var copy = new Object();
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      copy[key] = clone(obj[key]);
+    }
+  }
+  return copy;
+};
+
+/*********************************************************************
  * makeThumbOvly() - Create thumbnail and overlay images.
  ********************************************************************/
-var makeThumbOvly = function(filepath, filename) {
+var makeThumbOvly = function(filepath, filename, collection, newImage) {
   var command = ['./bin/thumb-ovly.sh',
                  filepath];
   exec(command.join(' '), function(err, stdout, stderr) {
@@ -263,9 +284,15 @@ var makeThumbOvly = function(filepath, filename) {
     ovlyPath += ovlyName;
     thumbPath += thumbName;
 
-    uploadToStorj(filepath);
-    uploadToStorj(ovlyPath);
-    uploadToStorj(thumbPath);
+    uploadToStorj(filepath, collection, newImage);
+
+    var ovlyImage = clone(newImage);
+    ovlyImage.image = ovlyName;
+    uploadToStorj(ovlyPath, collection, ovlyImage);
+
+    var thumbImage = clone(newImage);
+    thumbImage.image = thumbName;
+    uploadToStorj(thumbPath, collection, thumbImage);
 
     // Now delete the local files in the public/uploads dir
     deleteLocalFiles(filepath);
@@ -305,20 +332,15 @@ router.post('/upload', upload.single('sdd-photo'), function (req, res, next) {
   var collection = db.get('imageList');
   var timestamp = moment().format('MM-DD-YYYY HH:mm:ss');
 
-  // var storjPath = process.env.STORJ_PATH + req.file.path;
-  // var s3FilePath = process.env.S3_PUBLIC_PATH + req.file.path;
   if (req.file !== undefined) {
     var newImage = {'image': req.file.filename,
-                    // use storjPath here so it can be retrieved
-                    // by the client
-                    'path': req.file.path,
+                    'path': '',
                     'size': req.file.size,
                     'mimetype': req.file.mimetype,
                     'timestamp': timestamp,
                     'desc': req.body.desc };
-    collection.insert(newImage)
 
-    makeThumbOvly(req.file.path, req.file.filename);
+    makeThumbOvly(req.file.path, req.file.filename, collection, newImage);
   }
 
   res.redirect('/util');
@@ -365,7 +387,9 @@ router.put('/updateimage/:id', function(req, res) {
  * GET editpoll - Check if edited file exists.
  ********************************************************************/
 router.get('/editpoll', function(req, res) {
-  //var checkPath = req.query.path.replace(process.env.S3_PUBLIC_PATH, '');
+  var db = req.db;
+  var collection = db.get('editImageList');
+
   var checkPath = req.query.path;
   console.log('editpoll call: ' + checkPath);
   var pollResults = {'found': false};
@@ -374,8 +398,15 @@ router.get('/editpoll', function(req, res) {
     if (!err && stats.isFile()) {
       pollResults.found = true;
 
-      //Once edits are done, create thumbnail and send to Storj
-      makeThumbOvly(checkPath, req.query.image);
+      //Once edits are done, create thumbnail, send to Storj, and
+      //save in db.
+      var newImage = {'image': req.query.image,
+                      'path': '',
+                      'orig': req.query.orig,
+                      'checked': req.query.checked,
+                      'timestamp': req.query.timestamp };
+
+      makeThumbOvly(checkPath, req.query.image, collection, newImage);
     }
     res.json(pollResults);
   });
@@ -385,9 +416,6 @@ router.get('/editpoll', function(req, res) {
  * PUT editimage - Edit the image using graphicsmagick/imagemagick.
  ********************************************************************/
 router.put('/editimage', function(req, res) {
-  var db = req.db;
-  var collection = db.get('editImageList');
-
   var timestamp = moment().format('MM-DD-YYYY HH:mm:ss');
 
   // Edit photo paths and resulting dest file names.
@@ -488,9 +516,6 @@ router.put('/editimage', function(req, res) {
                     stdio: ['ignore', out, err]});
   child.unref();
 
-  // Add edit image to DB collection
-  //newImage.path = process.env.S3_PUBLIC_PATH + newImage.path;
-  collection.insert(newImage)
   res.json(newImage);
 });
 
