@@ -49,8 +49,7 @@ function buildPhotoRibbon(ribbonObj) {
       var dataLen  = data.length;
       var dataIdx  = 0;
       $.each(data, function() {
-        var thumbName = this.path.replace('public/', '');
-        var thumbName = thumbName.replace('orig', 'thumbs');
+        var thumbName = this.path.replace('orig', 'thumbs');
         thumbName += '-thumb.jpg';
 
         if (idx === 1) {

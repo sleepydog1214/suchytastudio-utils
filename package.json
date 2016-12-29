@@ -15,6 +15,7 @@
   "dependencies": {
     "body-parser": "~1.15.2",
     "connect-mongo": "~1.3.2",
+    "dotenv": "~2.0.0",
     "express": "~4.14.0",
     "express-session": "~1.14.2",
     "gm": "~1.23.0",
@@ -28,7 +29,8 @@
     "password-hash-and-salt": "~0.1.4",
     "path": "~0.12.7",
     "pug": "^2.0.0-beta6",
-    "serve-favicon": "~2.3.2"
+    "serve-favicon": "~2.3.2",
+    "storj-lib": "~6.0.11"
   },
   "main": "server.js",
   "scripts": {

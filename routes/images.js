@@ -31,6 +31,10 @@ SOFTWARE.
  *
  * var storage - Set multer file upload destination and filename.
  * var upload - Set multer file filter and limits.
+ * authenticateStorj() - Use storj private key to authenticate.
+ * uploadToStorj() - Copy file to Storj bucket.
+ * deleteFromStorj() - Delete file from Storj bucket.
+ * deleteLocalFiles() - Delete local files after moving to Storj dir.
  * makeThumbOvly() - Create thumbnail and overlay images.
  * GET imagelist - Read the collection.
  * GET editslist - Read the collection.
@@ -51,6 +55,9 @@ var exec     = require('child_process').exec;
 var spawn    = require('child_process').spawn;
 var out      = fs.openSync('./edit-image.log', 'a');
 var err      = fs.openSync('./edit-image.log', 'a');
+
+var storj    = require('storj-lib');
+var api      = 'https://api.storj.io';
 
 /*********************************************************************
  * var storage - Set multer file upload destination and filename.
@@ -101,6 +108,126 @@ var upload = multer({ storage: storage,
 });
 
 /*********************************************************************
+ * authenticateStorj() - Use storj private key to authenticate the
+ *                       storj client.
+ ********************************************************************/
+var authenticateStorj = function() {
+  var keypair = storj.KeyPair(process.env.STORJ_PRIVATE_KEY);
+  var concurrency = 6;
+
+  var client = storj.BridgeClient(api, {
+    keyPair: keypair,
+    concurrency: concurrency
+  });
+
+  return client;
+};
+
+/*********************************************************************
+ * uploadToStorj() - Copy file to Storj bucket
+ ********************************************************************/
+var uploadToStorj = function(filepath) {
+  var client = authenticateStorj();
+
+  // Determine the storj bucket to use base on the filepath name
+  // uploads/orig -> STORJ_UPLOADS_ORIG
+  // uploads/ovly -> STORJ_UPLOADS_OVLY
+  // uploads/thumbs -> STORJ_UPLOADS_THUMBS
+  // edits/orig -> STORJ_UPLOADS_ORIG
+  // edits/ovly -> STORJ_UPLOADS_OVLY
+  // edits/thumbs -> STORJ_UPLOADS_THUMBS
+  console.log('filepath: ', filepath);
+  var bucket;
+
+  if (filepath.search(/uploads\/orig/) >= 0) {
+   bucket = process.env.STORJ_UPLOADS_ORIG;
+  }
+  else if (filepath.search(/uploads\/ovly/) >= 0) {
+   bucket = process.env.STORJ_UPLOADS_OVLY;
+  }
+  else if (filepath.search(/uploads\/thumbs/) >= 0) {
+   bucket = process.env.STORJ_UPLOADS_THUMBS;
+  }
+  else if (filepath.search(/edits\/orig/) >= 0) {
+   bucket = process.env.STORJ_EDITS_ORIG;
+  }
+  else if (filepath.search(/edits\/ovly/) >= 0) {
+   bucket = process.env.STORJ_EDITS_OVLY;
+  }
+  else if (filepath.search(/edits\/thumbs/) >= 0) {
+   bucket = process.env.STORJ_EDITS_THUMBS;
+  }
+  console.log('bucket: ', bucket);
+
+  // temp file to store encrypted version
+  var tmpPath = filepath + '.crypt';
+
+  // Get the storj keyring and keep in key.ring dir
+  var keyRing = storj.KeyRing('./', process.env.STORJ_KEYRING);
+
+  // Prepare to encrypt file for upload
+  var secret = new storj.DataCipherKeyIv();
+  var encrypter = new storj.EncryptStream(secret);
+
+  // Encrypt the file and store it temporarily
+  fs.createReadStream(filepath)
+    .pipe(encrypter)
+    .pipe(fs.createWriteStream(tmpPath)).on('finish', function() {
+      console.log('finish encrypting: ', tmpPath)
+
+      //  Create a token for uploading to the bucket
+      client.createToken(bucket, 'PUSH', function(err, token) {
+        if (err) {
+          console.log('createToken error: ', err.message);
+        }
+
+        // Store the file using bucket id, token, and encrypted file
+        client.storeFileInBucket(bucket, token.token,
+                                 tmpPath, function(err, file) {
+          if (err) {
+            console.log('storeFileInBucket error: ', err.message);
+          }
+
+          // Save key for access to the file
+          keyRing.set(file.id, secret);
+
+          // success
+          // Store file.id  with filename in db
+          console.log(
+            'info',
+            'Name: %s, Type: %s, Size: %s bytes, ID: %s',
+            [file.filename, file.mimetype, file.size, file.id]
+          );
+
+          // Delete the tmp file
+          fs.unlink(tmpPath, function(err) {
+            if (err) {
+              console.log('tmp file delete error: ', err);
+            }
+          })
+        });
+      });
+    });
+};
+
+ /*********************************************************************
+ * deleteFromStorj() - Delete file from Storj bucket
+ ********************************************************************/
+ var deleteFromStorj = function(filepath) {
+ };
+
+/*********************************************************************
+ * deleteLocalFiles() - Delete local files after moving to Storj dir.
+ ********************************************************************/
+var deleteLocalFiles = function(fpath) {
+  fs.unlink(fpath, function(err) {
+    if (err) {
+      console.log('Could not delete localfile: ' + fpath);
+    }
+  });
+};
+
+/*********************************************************************
  * makeThumbOvly() - Create thumbnail and overlay images.
  ********************************************************************/
 var makeThumbOvly = function(filepath, filename) {
@@ -111,6 +238,39 @@ var makeThumbOvly = function(filepath, filename) {
       console.log('thumb-ovly err: ' + err);
     }
     console.log('finished make thumb-ovly');
+
+    //upload orig/photo, ovly/photo and thumbs/photo to Storj
+    var uploadPath = path.dirname(filepath);
+    var suffix = path.extname(filename);
+    var ovlyName = '';
+    var ovlyPath = uploadPath.replace('orig', 'ovly/');
+    var thumbName = '';
+    var thumbPath = uploadPath.replace('orig', 'thumbs/');
+
+    if (suffix === '.jpg') {
+      ovlyName = filename.replace('.jpg', '.jpg-ovly.jpg');
+      thumbName = filename.replace('.jpg', '.jpg-thumb.jpg');
+    }
+    else if (suffix === '.jpeg') {
+      ovlyName = filename.replace('.jpeg', '.jpeg-ovly.jpg');
+      thumbName = filename.replace('.jpeg', '.jpeg-thumb.jpg');
+    }
+    else if (suffix === '.png') {
+      ovlyName = filename.replace('.png', '.png-ovly.jpg');
+      thumbName = filename.replace('.png', '.png-thumb.jpg');
+    }
+
+    ovlyPath += ovlyName;
+    thumbPath += thumbName;
+
+    uploadToStorj(filepath);
+    uploadToStorj(ovlyPath);
+    uploadToStorj(thumbPath);
+
+    // Now delete the local files in the public/uploads dir
+    deleteLocalFiles(filepath);
+    deleteLocalFiles(ovlyPath);
+    deleteLocalFiles(thumbPath);
   });
 }
 
@@ -145,8 +305,12 @@ router.post('/upload', upload.single('sdd-photo'), function (req, res, next) {
   var collection = db.get('imageList');
   var timestamp = moment().format('MM-DD-YYYY HH:mm:ss');
 
+  // var storjPath = process.env.STORJ_PATH + req.file.path;
+  // var s3FilePath = process.env.S3_PUBLIC_PATH + req.file.path;
   if (req.file !== undefined) {
     var newImage = {'image': req.file.filename,
+                    // use storjPath here so it can be retrieved
+                    // by the client
                     'path': req.file.path,
                     'size': req.file.size,
                     'mimetype': req.file.mimetype,
@@ -174,15 +338,9 @@ router.delete('/deleteimage/:id', function(req, res) {
     var thumbName = 'public/uploads/thumbs/' + docs.image + '-thumb.jpg';
     var ovlyName  = 'public/uploads/ovly/' + docs.image + '-ovly.jpg';
 
-    fs.unlink(origName, function (err) {
-      if (err) console.log(err);
-    });
-    fs.unlink(thumbName, function (err) {
-      if (err) console.log(err);
-    });
-    fs.unlink(ovlyName, function (err) {
-      if (err) console.log(err);
-    });
+    deleteFromStorj(origName);
+    deleteFromStorj(ovlyName);
+    deleteFromStorj(thumbName);
   });
 
   // Delete from collection
@@ -207,6 +365,7 @@ router.put('/updateimage/:id', function(req, res) {
  * GET editpoll - Check if edited file exists.
  ********************************************************************/
 router.get('/editpoll', function(req, res) {
+  //var checkPath = req.query.path.replace(process.env.S3_PUBLIC_PATH, '');
   var checkPath = req.query.path;
   console.log('editpoll call: ' + checkPath);
   var pollResults = {'found': false};
@@ -215,7 +374,7 @@ router.get('/editpoll', function(req, res) {
     if (!err && stats.isFile()) {
       pollResults.found = true;
 
-      //Once edits are done, create thumbnail
+      //Once edits are done, create thumbnail and send to Storj
       makeThumbOvly(checkPath, req.query.image);
     }
     res.json(pollResults);
@@ -330,6 +489,7 @@ router.put('/editimage', function(req, res) {
   child.unref();
 
   // Add edit image to DB collection
+  //newImage.path = process.env.S3_PUBLIC_PATH + newImage.path;
   collection.insert(newImage)
   res.json(newImage);
 });
@@ -341,6 +501,32 @@ router.post('/downloadimage', function(req, res) {
   console.log('download: ' + req.body.path);
 
   var downloadPath = req.body.path;
+  /*var tempFile = 'public/downloads/' + path.basename(downloadPath);
+
+  var params = {
+    localFile: tempFile,
+
+    s3Params: {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: downloadPath
+    }
+  };
+
+  var downloadFile = client.downloadFile(params);
+  downloadFile.on('error', function(err) {
+    console.error("unable to download:", err.stack);
+    res.redirect('/index');
+  });
+
+  downloadFile.on('end', function() {
+    console.log("done downloading");
+    res.download(tempFile, function(err) {
+      if (err) {
+        console.log('end download err: ' + err)
+      }
+      deleteLocalFiles(tempFile);
+    });
+  });*/
 
   res.download(downloadPath, function(err) {
     if (err) {

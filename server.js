@@ -56,6 +56,8 @@ var password      = require('password-hash-and-salt');
 var passport      = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
+var dotenv        = require('dotenv').load();
+
 /*********************************************************************
  * getMongodbConnectionString() - Get the mongodb connection string
  ********************************************************************/
@@ -177,6 +179,7 @@ var SuchytaStudioApp = function() {
 
   // Set up server IP address and port # using env variables/defaults.
   self.setupVariables = function() {
+
     //  Set the environment variables we need.
     self.port = process.env.PORT || 8081;
   };
@@ -229,7 +232,7 @@ var SuchytaStudioApp = function() {
                            cookie: { maxAge: 7200000 }}));
 
     // Make our db accessible to our router
-    self.app.use(function(req,res,next){
+    self.app.use(function(req, res, next){
         req.db = db;
         next();
     });

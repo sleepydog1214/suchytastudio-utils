@@ -59,8 +59,7 @@ function populateImageTable() {
 
       // For each item in our JSON, add a table row and cells to the content string
       $.each(data, function(){
-          var thumbName = this.path.replace('public/', '');
-          thumbName = thumbName.replace('orig', 'thumbs');
+          var thumbName = this.path.replace('orig', 'thumbs');
           thumbName += '-thumb.jpg';
           imageContent += '<tr>';
           imageContent += '<td><a href="#" class="linkupdateimage" rel="' + this.image + '">' +
@@ -95,7 +94,7 @@ function setRandomImage(data, img) {
     var randomImg = genRandomInt(0, imageLength);
 
     // Set the image
-    var path = data[randomImg].path.replace('public/', '');
+    var path = data[randomImg].path;
     img.attr('src', path);
 };
 
