@@ -59,18 +59,21 @@ function populateImageTable() {
 
       // For each item in our JSON, add a table row and cells to the content string
       $.each(data, function(){
-          var thumbName = this.path.replace('orig', 'thumbs');
+        if (this.path.path.search(/orig/) >= 0) {
+          var thumbName = this.path.path.replace('orig', 'thumbs');
+          thumbName = thumbName.replace('public/', '');
           thumbName += '-thumb.jpg';
           imageContent += '<tr>';
           imageContent += '<td><a href="#" class="linkupdateimage" rel="' + this.image + '">' +
             '<img src="' + thumbName + '" width="50" height="50">' + this.image + '</a></td>';
-          imageContent += '<td>' + this.path + '</td>';
+          imageContent += '<td>' + this.path.path + '</td>';
           imageContent += '<td>' + this.size + '</td>';
           imageContent += '<td>' + this.mimetype + '</td>';
           imageContent += '<td>' + this.timestamp + '</td>';
           imageContent += '<td>' + this.desc + '</td>';
           imageContent += '<td><a href="#" class="linkdeleteimage" rel="' + this._id + '">delete</a></td>';
           imageContent += '</tr>';
+        }
       });
 
       // Inject the whole content string into our existing HTML table
@@ -154,7 +157,7 @@ function displayUpdateImage(event) {
   // Populate the input fields
   $('#inputImageId').val(thisImageObject._id);
   $('#inputImageName').val(thisImageObject.image);
-  $('#inputImagePath').val(thisImageObject.path);
+  $('#inputImagePath').val(thisImageObject.path.path);
   $('#inputImageSize').val(thisImageObject.size);
   $('#inputImageMimetype').val(thisImageObject.mimetype);
   $('#inputImageTimestamp').val(thisImageObject.timestamp);

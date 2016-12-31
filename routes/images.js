@@ -200,7 +200,9 @@ var uploadToStorj = function(filepath, collection, newImage) {
           );
 
           // Save info for later access
-          var fileinfo = { bucket: bucket, id: file.id };
+          var fileinfo = { path: filepath,
+                           bucket: bucket,
+                           id: file.id };
           newImage.path = fileinfo;
           collection.insert(newImage);
 
@@ -295,9 +297,9 @@ var makeThumbOvly = function(filepath, filename, collection, newImage) {
     uploadToStorj(thumbPath, collection, thumbImage);
 
     // Now delete the local files in the public/uploads dir
-    deleteLocalFiles(filepath);
-    deleteLocalFiles(ovlyPath);
-    deleteLocalFiles(thumbPath);
+    //deleteLocalFiles(filepath);
+    //deleteLocalFiles(ovlyPath);
+    //deleteLocalFiles(thumbPath);
   });
 }
 
