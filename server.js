@@ -58,6 +58,11 @@ var LocalStrategy = require('passport-local').Strategy;
 
 var dotenv        = require('dotenv').load();
 
+var through  = require('through');
+var storj    = require('storj-lib');
+var api      = 'https://api.storj.io';
+var keyring  = storj.KeyRing('./', process.env.STORJ_KEYRING);
+
 /*********************************************************************
  * getMongodbConnectionString() - Get the mongodb connection string
  ********************************************************************/
@@ -79,6 +84,27 @@ var getMongodbConnectionString = function () {
  * Global mongoDB and monk variable
  ********************************************************************/
 var db = monk(getMongodbConnectionString());
+
+/*********************************************************************
+ * authenticateStorj() - Use storj private key to authenticate the
+ *                       storj client.
+ ********************************************************************/
+var authenticateStorj = function() {
+  var keypair = storj.KeyPair(process.env.STORJ_PRIVATE_KEY);
+  var concurrency = 6;
+
+  var client = storj.BridgeClient(api, {
+    keyPair: keypair,
+    concurrency: concurrency
+  });
+
+  return client;
+};
+
+/*********************************************************************
+ * Global Storj client variable
+ ********************************************************************/
+var client = authenticateStorj();
 
 /*********************************************************************
  * Setup the passport local strategy
@@ -207,6 +233,79 @@ var SuchytaStudioApp = function() {
     });
   };
 
+  // Recreate the files in the key.ring dir
+  self.setupPublicImageDirs = function() {
+    var collection = db.get('keyring');
+
+    collection.find({}, {}, function(e, docs) {
+      docs.forEach(function(item) {
+        var filepath = item.path;
+        var data = item.data;
+
+        fs.writeFile(filepath, data, function(err) {
+          if (err) {
+            console.log('error: ', err.message);
+          }
+
+          // Loop through each image in each image collection, using
+          // path.path, path.bucket, and path.id for download location
+          // and bucket and file access
+          var icollection = db.get('imageList');
+          self.downloadFromStorj(icollection);
+
+          var ecollection = db.get('editImageList');
+          self.downloadFromStorj(ecollection);
+        });
+      });
+    });
+  };
+
+  // Download image files from Storj to local directories
+  self.downloadFromStorj = function(collection) {
+    collection.find({}, {}, function(e, docs) {
+      docs.forEach(function(item) {
+        var topath = item.path.path;
+        var bucketid = item.path.bucket;
+        var fileid = item.path.id;
+        var target = fs.createWriteStream(topath);
+        var secret = keyring.get(fileid);
+        var decrypter = new storj.DecryptStream(secret);
+        var received = 0;
+        var exclude = [];
+
+        client.createFileStream(bucketid, fileid, {
+          exclude: exclude },
+          function(err, stream) {
+            if (err) {
+              return console.log('error', err.message);
+            }
+
+            stream.on('error', function(err) {
+              console.log('warn', 'Failed to download shard, reason: ' + err.message);
+              fs.unlink(topath, function(unlinkFailed) {
+                if (unlinkFailed) {
+                  return console.log('error', 'Failed to unlink partial file.');
+                }
+                if (!err.pointer) {
+                  return;
+                }
+              });
+            }).pipe(through(function(chunk){
+              received += chunk.length;
+              console.log('info', 'Received ' + received + ' of ' + stream._length + ' bytes');
+              this.queue(chunk);
+            })).pipe(decrypter).pipe(target);
+        });
+
+        target.on('finish', function() {
+          console.log('info', 'File downloaded and written to ' + topath);
+        }).on('error', function(err) {
+          console.log('error', err.message);
+        });
+      });
+    });
+  };
+
   // App server functions (main app logic here)
 
   // Initialize the server (express) and create the routes and register
@@ -234,6 +333,7 @@ var SuchytaStudioApp = function() {
     // Make our db accessible to our router
     self.app.use(function(req, res, next){
         req.db = db;
+        req.client = client;
         next();
     });
 
@@ -280,6 +380,7 @@ var SuchytaStudioApp = function() {
   self.initialize = function() {
     self.setupVariables();
     self.setupTerminationHandlers();
+    self.setupPublicImageDirs();
 
     // Create the express server and routes.
     self.initializeServer();

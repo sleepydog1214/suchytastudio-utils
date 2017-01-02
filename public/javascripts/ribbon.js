@@ -49,44 +49,47 @@ function buildPhotoRibbon(ribbonObj) {
       var dataLen  = data.length;
       var dataIdx  = 0;
       $.each(data, function() {
-        var thumbName = this.path.path.replace('orig', 'thumbs');
-        thumbName += '-thumb.jpg';
+        if (this.path.path.search(/orig/) >= 0) {
+          var thumbName = this.path.path.replace('orig', 'thumbs');
+          thumbName = thumbName.replace('public/', '');
+          thumbName += '-thumb.jpg';
 
-        if (idx === 1) {
-          var rowId = 'ribbonRow-' + rowCount;
-          imageContent += '<tr id="' + rowId + '">';
+          if (idx === 1) {
+            var rowId = 'ribbonRow-' + rowCount;
+            imageContent += '<tr id="' + rowId + '">';
 
-          if (rowCount !== 0) {
-            imageContent += '<td><a href="#" class="prevrow"><div class="leftarrow"></div></a></td>';
-          }
-          ribbonRows.push('#' + rowId);
-          rowCount++;
-        }
-
-        imageContent += '<td>' +
-                        '<a href="#" class="displayimage" rel="' +
-                        this.image + '">' + '<img src="' +
-                        thumbName + '" height="75"></a>' +
-                        '<a href="#" class="icircle">i</a>' +
-                        '<div class="imgInfo">' +
-                        '<p>' + this.image + '</p>' +
-                        '<input type="button" value="Download"></td>' +
-                        '</div>' +
-                        '</td>';
-
-        if (idx % 5 === 0) {
-          if (dataIdx !== (dataLen - 1)) {
-            imageContent += '<td><a href="#" class="nextrow"><div class="rightarrow"></div></a></td>';
+            if (rowCount !== 0) {
+              imageContent += '<td><a href="#" class="prevrow"><div class="leftarrow"></div></a></td>';
+            }
+            ribbonRows.push('#' + rowId);
+            rowCount++;
           }
 
-          imageContent += '</tr>';
-          idx = 1;
-        }
-        else {
-          idx++;
-        }
+          imageContent += '<td>' +
+                          '<a href="#" class="displayimage" rel="' +
+                          this.image + '">' + '<img src="' +
+                          thumbName + '" height="75"></a>' +
+                          '<a href="#" class="icircle">i</a>' +
+                          '<div class="imgInfo">' +
+                          '<p>' + this.image + '</p>' +
+                          '<input type="button" value="Download"></td>' +
+                          '</div>' +
+                          '</td>';
 
-        dataIdx++;
+          if (idx % 5 === 0) {
+            if (dataIdx !== (dataLen - 1)) {
+              imageContent += '<td><a href="#" class="nextrow"><div class="rightarrow"></div></a></td>';
+            }
+
+            imageContent += '</tr>';
+            idx = 1;
+          }
+          else {
+            idx++;
+          }
+
+          dataIdx++;
+        }
       });
 
       if (idx % 5 !== 0) {

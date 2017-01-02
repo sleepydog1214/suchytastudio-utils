@@ -94,10 +94,26 @@ function genRandomInt(min, max) {
  ********************************************************************/
 function setRandomImage(data, img) {
     var imageLength = data.length;
-    var randomImg = genRandomInt(0, imageLength);
+
+    if (imageLength == 0) {
+      return;
+    }
 
     // Set the image
-    var path = data[randomImg].path;
+    var randomImg = genRandomInt(0, imageLength);
+    var path = data[randomImg].path.path;
+    var cnt = 0;
+    while (path.search(/ovly/) < 0) {
+      randomImg = genRandomInt(0, imageLength);
+      var path = data[randomImg].path.path;
+
+      // Avoid infinite loop in case there isn't an ovly image
+      if (cnt > 1000) {
+        return;
+      }
+      cnt++;
+    }
+    path = path.replace('public/', '');
     img.attr('src', path);
 };
 

@@ -71,7 +71,7 @@ function displayImage(event) {
   // Retrieve image from link rel attribute
   var thisImageObject = getImageData($(this).attr('rel'));
   var path = thisImageObject.path.path;
-  console.log('here: ' + path);
+  path = path.replace('public/', '');
   var data = {'src': path,
               'alt': thisImageObject.image};
 
